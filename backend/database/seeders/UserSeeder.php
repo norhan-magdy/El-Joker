@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
             [\App\Models\Role::where('name', 'admin')->value('id')]
         );
 
-        User::updateOrCreate(
+        $customer = User::updateOrCreate(
             ['email' => 'customer@commerce.test'],
             [
                 'name' => 'Customer User',
@@ -32,6 +32,10 @@ class UserSeeder extends Seeder
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]
+        );
+
+        $customer->roles()->syncWithoutDetaching(
+            [\App\Models\Role::where('name', 'customer')->value('id')]
         );
     }
 }

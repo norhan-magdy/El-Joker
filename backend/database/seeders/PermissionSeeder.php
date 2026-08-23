@@ -28,8 +28,15 @@ class PermissionSeeder extends Seeder
             Permission::updateOrCreate(['name' => $permission]);
         }
 
-        Role::where('name', 'admin')->first()?->permissions()->sync(
-            Permission::pluck('id')
-        );
+        $rolePermissions = [
+            'admin' => $permissions,
+            'customer' => ['cart.manage', 'favorites.manage', 'orders.view-own'],
+        ];
+
+        foreach ($rolePermissions as $role => $names) {
+            Role::where('name', $role)->first()?->permissions()->sync(
+                Permission::whereIn('name', $names)->pluck('id')
+            );
+        }
     }
 }
