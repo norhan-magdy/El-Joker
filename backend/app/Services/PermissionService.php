@@ -32,6 +32,8 @@ class PermissionService
         $role = Role::where('name', $role)->firstOrFail();
 
         $user->roles()->syncWithoutDetaching([$role->id]);
+
+        $user->syncAdminFlag();
     }
 
     public function removeRole(User $user, string $role): void
@@ -39,6 +41,8 @@ class PermissionService
         $role = Role::where('name', $role)->firstOrFail();
 
         $user->roles()->detach($role->id);
+
+        $user->syncAdminFlag();
     }
 
     public function syncUserRoles(User $user, array $roles): void
@@ -50,6 +54,8 @@ class PermissionService
         }
 
         $user->roles()->sync($roleIds);
+
+        $user->syncAdminFlag();
     }
 
     public function givePermissionTo(Role $role, string|array $permissions): void

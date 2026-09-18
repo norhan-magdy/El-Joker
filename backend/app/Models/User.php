@@ -38,6 +38,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'user_roles');
     }
 
+    public function syncAdminFlag(): void
+    {
+        $this->updateQuietly(['is_admin' => $this->roles()->where('name', 'admin')->exists()]);
+    }
+
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
@@ -63,6 +68,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 }

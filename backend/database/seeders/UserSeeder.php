@@ -24,6 +24,8 @@ class UserSeeder extends Seeder
             [\App\Models\Role::where('name', 'admin')->value('id')]
         );
 
+        $admin->syncAdminFlag();
+
         $customer = User::updateOrCreate(
             ['email' => 'customer@commerce.test'],
             [
@@ -37,5 +39,7 @@ class UserSeeder extends Seeder
         $customer->roles()->syncWithoutDetaching(
             [\App\Models\Role::where('name', 'customer')->value('id')]
         );
+
+        $customer->syncAdminFlag();
     }
 }

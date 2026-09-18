@@ -10,6 +10,17 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+    private function userPayload(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_admin' => (bool) $user->is_admin,
+            'roles' => $user->roles()->pluck('name')->all(),
+        ];
+    }
+
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -24,7 +35,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('api')->plainTextToken,
-            'user' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email],
+            'user' => $this->userPayload($user),
         ], 201);
     }
 
@@ -43,7 +54,30 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('api')->plainTextToken,
-            'user' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email],
+            'user' => $this->userPayload($user),
+        ]);
+    }
+
+    public function createAdminToken(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+
+        if (! $user || ! Hash::check($validated['password'], $user->password) || ! $user->is_active) {
+            return response()->json(['message' => 'Invalid credentials.'], 422);
+        }
+
+        if (! $user->hasRole('admin')) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        return response()->json([
+            'token' => $user->createToken('admin')->plainTextToken,
+            'user' => $this->userPayload($user),
         ]);
     }
 
@@ -58,11 +92,6 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        return response()->json(['data' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'roles' => $user->roles()->pluck('name'),
-        ]]);
+        return response()->json(['data' => $this->userPayload($user)]);
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('admin/login', [AuthController::class, 'createAdminToken']);
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{category}', [CategoryController::class, 'show']);
