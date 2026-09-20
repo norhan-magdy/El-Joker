@@ -18,7 +18,7 @@ export function useLogout() {
       clearSession();
       queryClient.clear();
       toast.success("Logged out");
-      router.push("/");
+      router.push("/shop");
     },
     onError: (err) => {
       toast.error(errorMessage(err));

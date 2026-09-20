@@ -49,7 +49,7 @@ export function ProductDetail({ productId }: { productId: string }) {
         onRetry={() => query.refetch()}
         action={
           <Button asChild variant="secondary">
-            <Link href="/">Browse catalog</Link>
+            <Link href="/shop">Browse catalog</Link>
           </Button>
         }
       />
@@ -63,7 +63,7 @@ export function ProductDetail({ productId }: { productId: string }) {
         <nav aria-label="Breadcrumb" className="text-sm text-text-muted">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link href="/" className="transition-colors hover:text-primary">
+              <Link href="/shop" className="transition-colors hover:text-primary">
                 Home
               </Link>
             </li>
@@ -72,7 +72,7 @@ export function ProductDetail({ productId }: { productId: string }) {
                 <li aria-hidden="true">/</li>
                 <li>
                   <Link
-                    href={`/?category=${product.category.slug}`}
+href={`/shop?categories=${product.category.slug}`}
                     className="transition-colors hover:text-primary"
                   >
                     {product.category.name}

@@ -17,7 +17,7 @@ import { useAuthStore } from "@/store/auth";
 
 function useNavLinks() {
   return [
-    { href: "/", label: "Shop" },
+    { href: "/shop", label: "Shop" },
     { href: "/favorites", label: "Favorites" },
     { href: "/orders", label: "Orders" },
   ];
@@ -63,7 +63,7 @@ function HeaderSearch({ className = "" }: { className?: string }) {
     if (timer.current) clearTimeout(timer.current);
     if (!value) return;
     timer.current = setTimeout(() => {
-      router.push(`/?q=${encodeURIComponent(value)}`);
+      router.push(`/shop?q=${encodeURIComponent(value)}`);
     }, 300);
     return () => {
       if (timer.current) clearTimeout(timer.current);

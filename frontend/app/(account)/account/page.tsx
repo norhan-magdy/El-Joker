@@ -71,7 +71,7 @@ export default function AccountPage() {
       </div>
 
       <Button asChild variant="secondary">
-        <Link href="/">Continue shopping</Link>
+        <Link href="/shop">Continue shopping</Link>
       </Button>
     </div>
   );

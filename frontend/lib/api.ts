@@ -12,6 +12,8 @@ import type {
   Paginated,
   Product,
   ProductInput,
+  ProductSort,
+  ProductsPage,
   Role,
   RolesPayload,
   User,
@@ -180,11 +182,25 @@ export function getMe(): Promise<{ data: User }> {
 export interface ListProductsParams {
   page?: number;
   q?: string;
-  category?: string;
+  categories?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: ProductSort;
+  inStock?: boolean;
 }
 
-export function listProducts(params: ListProductsParams = {}): Promise<Paginated<Product>> {
-  return request<Paginated<Product>>("products", { params: { page: params.page, q: params.q, category: params.category } });
+export function listProducts(params: ListProductsParams = {}): Promise<ProductsPage> {
+  return request<ProductsPage>("products", {
+    params: {
+      page: params.page,
+      q: params.q,
+      categories: params.categories,
+      min: params.minPrice,
+      max: params.maxPrice,
+      sort: params.sort,
+      in_stock: params.inStock ? "1" : undefined,
+    },
+  });
 }
 
 export function getProduct(id: string): Promise<{ data: Product }> {

@@ -36,7 +36,7 @@ export function CartSummary({ count, subtotal }: CartSummaryProps) {
         <Link href="/checkout" className="block">
           <Button fullWidth>Checkout</Button>
         </Link>
-        <Link href="/" className="block">
+        <Link href="/shop" className="block">
           <Button variant="secondary" fullWidth>
             Continue shopping
           </Button>

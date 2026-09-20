@@ -130,6 +130,44 @@
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%233a0d11%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M16.704%205.29a1%201%200%200%201%20.006%201.414l-5.5%205.5a1%201%200%200%201-1.414%200l-2.5-2.5a1%201%200%200%201%201.414-1.414L10.5%2010.586l4.79-4.79a1%201%200%200%201%201.414-.006Z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E");
 }
 
+.range-thumb {
+  pointer-events: none;
+}
+.range-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.range-thumb::-moz-range-track {
+  background: transparent;
+}
+.range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  cursor: grab;
+}
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  cursor: grab;
+}
+.range-thumb:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.range-thumb:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+
 html {
   background: var(--color-background);
   color: var(--color-text-primary);

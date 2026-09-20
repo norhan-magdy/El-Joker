@@ -1,5 +1,12 @@
 export type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "cancelled";
 
+export type ProductSort = "newest" | "price-asc" | "price-desc";
+
+export interface PriceRange {
+  min: number;
+  max: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -144,6 +151,10 @@ export interface Paginated<T> {
   data: T[];
   links: PaginationLinks;
   meta: PaginationMeta;
+}
+
+export interface ProductsPage extends Paginated<Product> {
+  price_range?: PriceRange;
 }
 
 export interface LoginBody {

@@ -40,7 +40,7 @@ export default function FavoritesPage() {
           caption="Tap the heart on any product to save it for later."
           action={
             <Button asChild>
-              <Link href="/">Browse products</Link>
+              <Link href="/shop">Browse products</Link>
             </Button>
           }
         />

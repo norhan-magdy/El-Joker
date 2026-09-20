@@ -20,7 +20,7 @@ export default function CartPage() {
           caption="Looks like you haven't added anything yet. Browse the catalog to get started."
           action={
             <Button asChild>
-              <Link href="/">Browse products</Link>
+              <Link href="/shop">Browse products</Link>
             </Button>
           }
         />

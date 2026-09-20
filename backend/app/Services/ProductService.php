@@ -10,20 +10,48 @@ use Illuminate\Support\Str;
 
 class ProductService
 {
-    public function list(?string $search = null, ?string $categorySlug = null, bool $withInactive = false): LengthAwarePaginator
-    {
+    public function list(
+        ?string $search = null,
+        ?array $categorySlugs = null,
+        bool $withInactive = false,
+        ?float $minPrice = null,
+        ?float $maxPrice = null,
+        string $sort = 'newest',
+        bool $inStockOnly = false,
+    ): LengthAwarePaginator {
         return Product::query()
             ->with(['category', 'inventory'])
             ->when(! $withInactive, fn ($query) => $query->where('is_active', true))
             ->when($search, fn ($query) => $query->where(fn ($q) => $q
                 ->where('title', 'ilike', "%{$search}%")
                 ->orWhere('description', 'ilike', "%{$search}%")))
-            ->when($categorySlug, fn ($query) => $query->whereHas(
+            ->when($categorySlugs, fn ($query) => $query->whereHas(
                 'category',
-                fn ($q) => $q->where('slug', $categorySlug)
+                fn ($q) => $q->whereIn('slug', $categorySlugs)
             ))
-            ->latest()
+            ->when($minPrice !== null, fn ($query) => $query->where('price', '>=', $minPrice))
+            ->when($maxPrice !== null, fn ($query) => $query->where('price', '<=', $maxPrice))
+            ->when($inStockOnly, fn ($query) => $query->whereHas(
+                'inventory',
+                fn ($q) => $q->where('quantity', '>', 0)
+            ))
+            ->when($sort === 'price-asc', fn ($query) => $query->orderBy('price', 'asc'))
+            ->when($sort === 'price-desc', fn ($query) => $query->orderBy('price', 'desc'))
+            ->when(! in_array($sort, ['price-asc', 'price-desc'], true), fn ($query) => $query->latest())
             ->paginate(15);
+    }
+
+    public function priceRange(): array
+    {
+        $range = Product::query()
+            ->where('is_active', true)
+            ->selectRaw('MIN(price) as min_price, MAX(price) as max_price')
+            ->first();
+
+        return [
+            'min' => (float) ($range->min_price ?? 0),
+            'max' => (float) ($range->max_price ?? 0),
+        ];
     }
 
     public function find(string $id, bool $withInactive = false): Product
@@ -100,7 +128,7 @@ class ProductService
                 ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
                 ->exists()
         ) {
-            $slug = $base . '-' . ++$i;
+            $slug = $base.'-'.++$i;
         }
 
         return $slug;

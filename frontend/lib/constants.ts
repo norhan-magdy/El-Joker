@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@/lib/types";
+import type { OrderStatus, ProductSort } from "@/lib/types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
@@ -22,6 +22,12 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
 
 export const CART_ITEM_MIN_QTY = 1;
 export const CART_ITEM_MAX_QTY = 100;
+
+export const PRODUCT_SORTS: { value: ProductSort; label: string }[] = [
+  { value: "newest", label: "Newest" },
+  { value: "price-asc", label: "Price: low to high" },
+  { value: "price-desc", label: "Price: high to low" },
+];
 
 export const PRODUCT_PRICE_MAX = 9999999999.99;
 

@@ -24,7 +24,7 @@ export function LoginForm({ admin = false, redirectTo }: { admin?: boolean; redi
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
-  const target = next ?? redirectTo ?? (admin ? "/admin" : "/");
+  const target = next ?? redirectTo ?? (admin ? "/admin" : "/shop");
   const token = useAuthStore((s) => s.token);
   const bootstrapped = useAuthStore((s) => s.bootstrapped);
   const setSession = useAuthStore((s) => s.setSession);

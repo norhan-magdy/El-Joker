@@ -72,7 +72,7 @@ export default function CheckoutPage() {
                 <Link href={`/orders/${createdOrderId}`}>View order</Link>
               </Button>
               <Button asChild variant="secondary" fullWidth>
-                <Link href="/">Continue shopping</Link>
+                <Link href="/shop">Continue shopping</Link>
               </Button>
             </div>
           </Card>

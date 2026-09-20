@@ -29,7 +29,7 @@ export default function RegisterPage() {
   const setSession = useAuthStore((s) => s.setSession);
 
   useEffect(() => {
-    if (token && bootstrapped) router.replace("/");
+    if (token && bootstrapped) router.replace("/shop");
   }, [token, bootstrapped, router]);
 
   const {
@@ -47,7 +47,7 @@ export default function RegisterPage() {
       const res = await registerApi(data);
       setSession(res.user, res.token);
       toast.success("Account created");
-      router.push("/");
+      router.push("/shop");
     } catch (err) {
       const apiErr = err as Partial<ApiError>;
       if (apiErr.kind === "validation" && apiErr.errors) {

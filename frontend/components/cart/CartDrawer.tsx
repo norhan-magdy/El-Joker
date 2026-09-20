@@ -21,7 +21,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
         <div className="py-10 text-center">
           <p className="text-sm text-text-muted">Your cart is empty.</p>
           <Link
-            href="/"
+            href="/shop"
             onClick={onClose}
             className="mt-3 inline-block text-sm font-medium text-primary hover:text-primary-hover"
           >
