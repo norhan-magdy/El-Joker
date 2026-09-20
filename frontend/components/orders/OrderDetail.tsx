@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { Card } from "@/components/ui/Card";
 import { formatDate, formatShortId, formatMoney } from "@/lib/constants";
+import { openInvoicePdf } from "@/lib/download-invoice";
 
 export function OrderDetail({ orderId }: { orderId: string }) {
   const query = useQuery({
@@ -102,22 +103,17 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 <p>
                   #{order.invoice.invoice_number} · issued {formatDate(order.invoice.issued_at)}
                 </p>
-                {order.invoice.pdf_url ? (
-                  <Link
-                    href={order.invoice.pdf_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-medium text-primary hover:text-primary-hover"
-                  >
-                    <svg aria-hidden className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
-                      <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
-                    </svg>
-                    Download PDF
-                  </Link>
-                ) : (
-                  <p className="text-xs text-text-muted">PDF is not available yet.</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => void openInvoicePdf(order.id)}
+                  className="inline-flex items-center gap-2 font-medium text-primary hover:cursor-pointer hover:text-primary-hover"
+                >
+                  <svg aria-hidden className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
+                    <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
+                  </svg>
+                  Download PDF
+                </button>
               </div>
             ) : (
               <p className="mt-2 text-sm text-text-muted">No invoice has been issued for this order.</p>

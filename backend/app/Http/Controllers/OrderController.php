@@ -5,15 +5,20 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckoutRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
+use App\Services\InvoiceService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\File;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly OrderService $orders)
-    {
+    public function __construct(
+        private readonly OrderService $orders,
+        private readonly InvoiceService $invoices,
+    ) {
     }
 
     public function index(): AnonymousResourceCollection
@@ -31,6 +36,23 @@ class OrderController extends Controller
     public function show(string $order): OrderResource
     {
         return new OrderResource($this->orders->find(request()->user(), $order));
+    }
+
+    public function invoicePdf(string $order): BinaryFileResponse
+    {
+        $order = $this->orders->find(request()->user(), $order);
+
+        $invoice = $order->invoice;
+
+        abort_unless(
+            $invoice && File::exists($this->invoices->absolutePathFor($invoice)),
+            404,
+            'Invoice PDF is not available for this order.',
+        );
+
+        return response()->file($this->invoices->absolutePathFor($invoice), [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     public function update(UpdateOrderStatusRequest $request, string $order): OrderResource

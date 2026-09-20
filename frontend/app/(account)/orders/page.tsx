@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatShortId, formatDate, formatMoney } from "@/lib/constants";
+import { openInvoicePdf } from "@/lib/download-invoice";
+import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top";
 import type { Order } from "@/lib/types";
 
 function OrderTableDesktop({ orders }: { orders: Order[] }) {
@@ -40,18 +42,13 @@ function OrderTableDesktop({ orders }: { orders: Order[] }) {
               <td className="px-5 py-4 text-right font-medium tabular-nums">{formatMoney(order.total_amount)}</td>
               <td className="px-5 py-4 text-text-secondary">
                 {order.invoice ? (
-                  order.invoice.pdf_url ? (
-                    <Link
-                      href={order.invoice.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary-hover"
-                    >
-                      PDF
-                    </Link>
-                  ) : (
-                    "Pending"
-                  )
+                  <button
+                    type="button"
+                    onClick={() => void openInvoicePdf(order.id)}
+                    className="cursor-pointer text-primary hover:text-primary-hover"
+                  >
+                    PDF
+                  </button>
                 ) : (
                   "—"
                 )}
@@ -80,8 +77,18 @@ function OrderCardList({ orders }: { orders: Order[] }) {
             <p className="mt-2 text-sm text-text-secondary">{formatDate(order.created_at)}</p>
             <p className="mt-1 text-base font-semibold text-text-primary">
               {formatMoney(order.total_amount)}
-              {order.invoice?.pdf_url && (
-                <span className="ml-2 text-xs font-normal text-primary">PDF ↓</span>
+              {order.invoice && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void openInvoicePdf(order.id);
+                  }}
+                  className="ml-2 cursor-pointer text-xs font-normal text-primary"
+                >
+                  PDF ↓
+                </button>
               )}
             </p>
           </Link>
@@ -93,6 +100,8 @@ function OrderCardList({ orders }: { orders: Order[] }) {
 
 export default function OrdersPage() {
   const [page, setPage] = useState(1);
+
+  useScrollToTopOnChange(page);
 
   const query = useQuery({
     queryKey: ["orders", page],

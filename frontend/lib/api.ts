@@ -296,6 +296,46 @@ export function payOrder(
   return request<{ message: string; payment: PaidPayment }>(`orders/${id}/pay`, { method: "POST", body });
 }
 
+export async function downloadInvoicePdf(orderId: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(`orders/${orderId}/invoice/pdf`), { headers });
+  } catch {
+    throw {
+      kind: "business",
+      status: 0,
+      message: "Network error. Could not reach the server.",
+    } satisfies ApiError;
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    let payload: { message?: string } | null = null;
+    try {
+      payload = text ? (JSON.parse(text) as { message?: string }) : null;
+    } catch {
+      payload = null;
+    }
+    const msg = payload?.message ?? `Request failed (${res.status}).`;
+
+    if (res.status === 401) {
+      handleUnauthorized();
+      throw { kind: "business", status: 401, message: msg } satisfies ApiError;
+    }
+    if (res.status === 403) {
+      handleForbidden();
+      throw { kind: "business", status: 403, message: msg } satisfies ApiError;
+    }
+    throw { kind: "business", status: res.status, message: msg } satisfies ApiError;
+  }
+
+  return res.blob();
+}
+
 // ---------------------------------------------------------------- rbac
 
 export function listRoles(): Promise<RolesPayload> {

@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Button } from "@/components/ui/Button";
+import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top";
 
 interface CatalogProps {
   initialQ: string;
@@ -22,6 +23,8 @@ export function Catalog({ initialQ, initialCategory }: CatalogProps) {
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [page, setPage] = useState(1);
   const [prevFilterKey, setPrevFilterKey] = useState("");
+
+  useScrollToTopOnChange(page);
 
   const filterKey = `${q}|${category ?? ""}`;
   if (filterKey !== prevFilterKey) {

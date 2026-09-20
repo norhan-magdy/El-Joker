@@ -15,6 +15,10 @@ class OrderService
 {
     public const STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
 
+    public function __construct(private readonly InvoiceService $invoices)
+    {
+    }
+
     public function listFor(User $user): LengthAwarePaginator
     {
         return Order::query()
@@ -99,6 +103,8 @@ class OrderService
                 'invoice_number' => 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(8)),
                 'issued_at' => now(),
             ]);
+
+            $this->invoices->generateFor($order);
 
             $cart->items()->delete();
 

@@ -16,6 +16,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatMoney } from "@/lib/constants";
+import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top";
 import type { Product } from "@/lib/types";
 
 type StatusFilter = "all" | "active" | "inactive";
@@ -126,6 +127,8 @@ export default function AdminProductsPage() {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+
+  useScrollToTopOnChange(page);
 
   useEffect(() => {
     const t = setTimeout(() => {

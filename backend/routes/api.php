@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:orders.view-own')->group(function () {
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+        Route::get('orders/{order}/invoice/pdf', [OrderController::class, 'invoicePdf'])->name('orders.invoice-pdf');
         Route::post('orders/checkout', [OrderController::class, 'store']);
     });
 });

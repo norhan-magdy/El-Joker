@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { formatShortId, formatDate, formatMoney } from "@/lib/constants";
+import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top";
 import type { Order } from "@/lib/types";
 
 function OrderTable({ orders }: { orders: Order[] }) {
@@ -54,6 +55,8 @@ function OrderTable({ orders }: { orders: Order[] }) {
 
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
+
+  useScrollToTopOnChange(page);
 
   const query = useQuery({
     queryKey: ["admin", "orders", page],
