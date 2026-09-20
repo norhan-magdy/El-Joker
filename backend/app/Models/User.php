@@ -23,14 +23,20 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasApiTokens, HasUuids, Notifiable;
 
+    protected array $permissionCache = [];
+
+    protected array $roleCache = [];
+
     public function hasPermissionTo(string $permission): bool
     {
-        return app(PermissionService::class)->userHasPermission($this, $permission);
+        return $this->permissionCache[$permission]
+            ??= app(PermissionService::class)->userHasPermission($this, $permission);
     }
 
     public function hasRole(string $role): bool
     {
-        return app(PermissionService::class)->userHasRole($this, $role);
+        return $this->roleCache[$role]
+            ??= app(PermissionService::class)->userHasRole($this, $role);
     }
 
     public function roles(): BelongsToMany

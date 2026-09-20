@@ -20,6 +20,7 @@ class PermissionSeeder extends Seeder
             'orders.view-own',
             'orders.manage',
             'payments.process',
+            'invoices.manage',
             'users.manage',
             'roles.manage',
         ];

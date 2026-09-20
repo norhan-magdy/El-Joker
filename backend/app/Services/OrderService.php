@@ -24,7 +24,7 @@ class OrderService
         return Order::query()
             ->with(['items.product', 'invoice', 'payments'])
             ->when(
-                ! app(PermissionService::class)->userHasPermission($user, 'orders.manage'),
+                ! $user->hasPermissionTo('orders.manage'),
                 fn ($query) => $query->where('user_id', $user->id)
             )
             ->latest()
@@ -37,7 +37,7 @@ class OrderService
 
         abort_if(
             $order->user_id !== $user->id
-                && ! app(PermissionService::class)->userHasPermission($user, 'orders.manage'),
+                && ! $user->hasPermissionTo('orders.manage'),
             Response::HTTP_FORBIDDEN,
         );
 
@@ -88,16 +88,33 @@ class OrderService
                 'shipping_address' => $shippingAddress,
             ]);
 
-            foreach ($lines as $line) {
-                $order->items()->create([
+            $order->items()->insert(
+                collect($lines)->map(fn (array $line) => [
+                    'id' => (string) Str::uuid(),
                     'order_id' => $order->id,
                     'product_id' => $line['product']->id,
                     'unit_price' => $line['unit_price'],
                     'quantity' => $line['quantity'],
-                ]);
+                ])->all(),
+            );
 
-                $line['product']->inventory()->decrement('quantity', $line['quantity']);
+            $caseSql = '';
+            $bindings = [];
+
+            foreach ($lines as $line) {
+                $caseSql .= 'WHEN product_id = ? THEN quantity - ? ';
+                $bindings[] = $line['product']->id;
+                $bindings[] = $line['quantity'];
             }
+
+            $ids = collect($lines)->pluck('product.id');
+            $bindings = array_merge($bindings, $ids->all());
+            $idPlaceholders = rtrim(str_repeat('?,', $ids->count()), ',');
+
+            DB::update(
+                "UPDATE inventory SET quantity = CASE {$caseSql} END WHERE product_id IN ({$idPlaceholders})",
+                $bindings,
+            );
 
             $order->invoice()->create([
                 'invoice_number' => 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(8)),

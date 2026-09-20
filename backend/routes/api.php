@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
@@ -61,6 +62,12 @@ Route::middleware(['auth:sanctum', 'permission:orders.manage'])->group(function 
 
 Route::middleware(['auth:sanctum', 'permission:payments.process'])->group(function () {
     Route::post('orders/{order}/pay', [OrderController::class, 'pay']);
+});
+
+Route::middleware(['auth:sanctum', 'permission:invoices.manage'])->prefix('admin/invoices')->group(function () {
+    Route::get('/', [InvoiceController::class, 'index'])->name('admin.invoices.index');
+    Route::get('{invoice}', [InvoiceController::class, 'show'])->name('admin.invoices.show');
+    Route::post('{invoice}/generate', [InvoiceController::class, 'regenerate'])->name('admin.invoices.regenerate');
 });
 
 Route::middleware(['auth:sanctum', 'permission:roles.manage'])->prefix('rbac')->group(function () {

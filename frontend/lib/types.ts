@@ -70,11 +70,29 @@ export interface PaidPayment {
   status: string;
 }
 
+export interface InvoiceOrderSummary {
+  id: string;
+  status: OrderStatus;
+  total_amount: number;
+  shipping_address: string;
+  created_at: string;
+  items?: OrderItem[];
+  payments?: Payment[];
+}
+
+export interface InvoiceCustomer {
+  name: string;
+  email: string;
+}
+
 export interface Invoice {
   id: string;
   invoice_number: string;
   pdf_url: string | null;
   issued_at: string;
+  order?: InvoiceOrderSummary;
+  customer?: InvoiceCustomer;
+  items_count?: number;
 }
 
 export interface Order {

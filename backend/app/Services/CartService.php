@@ -36,7 +36,9 @@ class CartService
                 'Product is out of stock.'
             );
 
-            $item = $this->getCart($user)
+            $cart = $this->getCart($user);
+
+            $item = $cart
                 ->items()
                 ->where('product_id', $product->id)
                 ->lockForUpdate()
@@ -48,7 +50,7 @@ class CartService
                 return $item->refresh()->load('product.category');
             }
 
-            return $this->getCart($user)->items()->create([
+            return $cart->items()->create([
                 'product_id' => $product->id,
                 'quantity' => $quantity,
             ])->load('product.category');

@@ -4,6 +4,7 @@ import type {
   CartItem,
   Category,
   CategoryInput,
+  Invoice,
   MessageResponse,
   Order,
   OrderStatus,
@@ -269,6 +270,20 @@ export function addFavorite(product_id: string): Promise<MessageResponse> {
 
 export function removeFavorite(product_id: string): Promise<MessageResponse> {
   return request<MessageResponse>(`favorites/${product_id}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------- invoices (admin)
+
+export function listAdminInvoices(params: { page?: number; q?: string } = {}): Promise<Paginated<Invoice>> {
+  return request<Paginated<Invoice>>("admin/invoices", { params: { page: params.page, q: params.q } });
+}
+
+export function getAdminInvoice(id: string): Promise<{ data: Invoice }> {
+  return request<{ data: Invoice }>(`admin/invoices/${id}`);
+}
+
+export function regenerateAdminInvoice(id: string): Promise<{ message: string; data: Invoice }> {
+  return request<{ message: string; data: Invoice }>(`admin/invoices/${id}/generate`, { method: "POST" });
 }
 
 // ---------------------------------------------------------------- orders

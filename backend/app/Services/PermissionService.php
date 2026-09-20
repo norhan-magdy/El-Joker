@@ -60,10 +60,7 @@ class PermissionService
 
     public function givePermissionTo(Role $role, string|array $permissions): void
     {
-        $ids = collect((array) $permissions)
-            ->map(fn (string $name) => Permission::where('name', $name)->value('id'))
-            ->filter()
-            ->all();
+        $ids = Permission::whereIn('name', (array) $permissions)->pluck('id')->all();
 
         $role->permissions()->syncWithoutDetaching($ids);
     }

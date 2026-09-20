@@ -17,8 +17,13 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'is_admin' => (bool) $user->is_admin,
-            'roles' => $user->roles()->pluck('name')->all(),
+            'roles' => $user->roles->pluck('name')->all(),
         ];
+    }
+
+    private function credentialsAreValid(string $password, User $user): bool
+    {
+        return Hash::check($password, $user->password);
     }
 
     public function register(Request $request): JsonResponse
@@ -35,7 +40,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('api')->plainTextToken,
-            'user' => $this->userPayload($user),
+            'user' => $this->userPayload($user->load('roles')),
         ], 201);
     }
 
@@ -46,9 +51,9 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::with('roles')->where('email', $validated['email'])->first();
 
-        if (! $user || ! Hash::check($validated['password'], $user->password) || ! $user->is_active) {
+        if (! $user || ! $this->credentialsAreValid($validated['password'], $user) || ! $user->is_active) {
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
 
@@ -65,9 +70,9 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::with('roles')->where('email', $validated['email'])->first();
 
-        if (! $user || ! Hash::check($validated['password'], $user->password) || ! $user->is_active) {
+        if (! $user || ! $this->credentialsAreValid($validated['password'], $user) || ! $user->is_active) {
             return response()->json(['message' => 'Invalid credentials.'], 422);
         }
 
@@ -90,7 +95,7 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user()->load('roles');
 
         return response()->json(['data' => $this->userPayload($user)]);
     }

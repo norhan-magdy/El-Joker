@@ -22,7 +22,10 @@ const GROUPS: { label: string; items: { href: string; label: string }[] }[] = [
   },
   {
     label: "Sales",
-    items: [{ href: "/admin/orders", label: "Orders" }],
+    items: [
+      { href: "/admin/orders", label: "Orders" },
+      { href: "/admin/invoices", label: "Invoices" },
+    ],
   },
   {
     label: "Access",
