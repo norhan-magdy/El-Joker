@@ -29,7 +29,7 @@ export function QuantityStepper({
         onClick={decrement}
         disabled={disabled || value <= min}
         aria-label="Decrease quantity"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-l-md text-text-secondary transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:text-disabled-text disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-l-md text-text-secondary transition-colors hover:bg-overlay disabled:cursor-not-allowed disabled:text-disabled-text disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <svg aria-hidden className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z" />
@@ -43,7 +43,7 @@ export function QuantityStepper({
         onClick={increment}
         disabled={disabled || value >= max}
         aria-label="Increase quantity"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-r-md text-text-secondary transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:text-disabled-text disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-r-md text-text-secondary transition-colors hover:bg-overlay disabled:cursor-not-allowed disabled:text-disabled-text disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <svg aria-hidden className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />

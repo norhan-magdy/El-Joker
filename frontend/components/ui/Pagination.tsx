@@ -67,7 +67,7 @@ export function Pagination({ page, lastPage, onPageChange, hasPrev, hasNext, loa
             className={`inline-flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
               p === current
                 ? "bg-primary text-on-primary"
-                : "text-text-secondary hover:bg-black/5 hover:text-text-primary"
+                : "text-text-secondary hover:bg-overlay hover:text-text-primary"
             }`}
           >
             {p}

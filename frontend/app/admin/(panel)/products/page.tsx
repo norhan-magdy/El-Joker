@@ -38,7 +38,7 @@ function ProductTable({ products, onDelete }: { products: Product[]; onDelete: (
         </thead>
         <tbody>
           {products.map((product) => (
-            <tr key={product.id} className="border-b border-border transition-colors last:border-0 hover:bg-black/[0.02]">
+            <tr key={product.id} className="border-b border-border transition-colors last:border-0 hover:bg-overlay">
               <td className="px-5 py-3">
                 <div className="flex items-center gap-3">
                   <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-border bg-background">

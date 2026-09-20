@@ -7,7 +7,7 @@ const VARIANT_CLASSES: Record<BadgeVariant, string> = {
   warning: "bg-warning-bg text-warning",
   error: "bg-error-bg text-error",
   info: "bg-info-bg text-info",
-  neutral: "bg-black/5 text-text-secondary",
+  neutral: "bg-overlay text-text-secondary",
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

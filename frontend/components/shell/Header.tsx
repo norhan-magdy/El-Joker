@@ -10,6 +10,7 @@ import { useUser, useIsAuthenticated } from "@/components/auth/useAuth";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { Drawer } from "@/components/shell/Drawer";
 import { Brand } from "@/components/shell/Brand";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { useAuthStore } from "@/store/auth";
@@ -130,7 +131,7 @@ export function Header() {
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-black/5 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-overlay hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <svg aria-hidden className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
@@ -138,11 +139,13 @@ export function Header() {
             </button>
           </div>
 
+          <ThemeToggle />
+
           <button
             type="button"
             onClick={() => gotoAccount("/favorites", "Please log in to save favorites")}
             aria-label="Favorites"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-black/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-overlay hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-6 w-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
@@ -153,7 +156,7 @@ export function Header() {
             type="button"
             onClick={openCart}
             aria-label={cartCount ? `${cartCount} items in cart` : "Cart"}
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-black/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-overlay hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-6 w-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" />
@@ -170,7 +173,7 @@ export function Header() {
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(pathname)}`}
-              className="ml-1 hidden h-10 items-center rounded-lg px-4 text-sm font-medium text-text-primary transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 sm:inline-flex"
+              className="ml-1 hidden h-10 items-center rounded-lg px-4 text-sm font-medium text-text-primary transition-colors hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 sm:inline-flex"
             >
               Log in
             </Link>
@@ -181,6 +184,9 @@ export function Header() {
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} side="right" title="Menu">
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <ThemeToggle />
+          </div>
           <div className="lg:hidden">
             <HeaderSearch />
           </div>
@@ -193,7 +199,7 @@ export function Header() {
                   <Link
                     href="/account"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center rounded-md px-2 py-2 text-sm text-text-secondary hover:bg-black/5 hover:text-text-primary"
+                    className="flex items-center rounded-md px-2 py-2 text-sm text-text-secondary hover:bg-overlay hover:text-text-primary"
                   >
                     My account
                   </Link>
@@ -202,7 +208,7 @@ export function Header() {
                   <Link
                     href="/admin"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center rounded-md px-2 py-2 text-sm text-text-secondary hover:bg-black/5 hover:text-text-primary"
+                    className="flex items-center rounded-md px-2 py-2 text-sm text-text-secondary hover:bg-overlay hover:text-text-primary"
                   >
                     Admin
                   </Link>

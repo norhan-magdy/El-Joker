@@ -7,6 +7,7 @@ import { useUser } from "@/components/auth/useAuth";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { Drawer } from "@/components/shell/Drawer";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 
 const GROUPS: { label: string; items: { href: string; label: string }[] }[] = [
   {
@@ -117,13 +118,14 @@ export function AdminTopbar({ title }: { title: string }) {
           type="button"
           onClick={() => setMobileOpen(true)}
           aria-label="Open admin menu"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-black/5 lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-overlay lg:hidden"
         >
           <svg aria-hidden className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
           </svg>
         </button>
         <span className="flex-1 truncate text-lg font-semibold text-text-primary">{title}</span>
+        <ThemeToggle className="h-10 w-10" />
         <UserMenu compact />
       </div>
       <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} side="left" title="Admin">

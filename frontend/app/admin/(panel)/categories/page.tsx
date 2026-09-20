@@ -93,7 +93,7 @@ export default function AdminCategoriesPage() {
               </thead>
               <tbody>
                 {buildTree(query.data).map(({ category, depth }) => (
-                  <tr key={category.id} className="border-b border-border transition-colors last:border-0 hover:bg-black/[0.02]">
+                  <tr key={category.id} className="border-b border-border transition-colors last:border-0 hover:bg-overlay">
                     <td className="px-5 py-3">
                       <span className="inline-flex items-center font-medium text-text-primary" style={{ paddingLeft: `${depth * 16}px` }}>
                         {depth > 0 ? (

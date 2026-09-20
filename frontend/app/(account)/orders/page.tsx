@@ -29,7 +29,7 @@ function OrderTableDesktop({ orders }: { orders: Order[] }) {
         </thead>
         <tbody>
           {orders.map((order) => (
-            <tr key={order.id} className="border-b border-border transition-colors last:border-0 hover:bg-black/[0.02]">
+            <tr key={order.id} className="border-b border-border transition-colors last:border-0 hover:bg-overlay">
               <td className="px-5 py-4">
                 <Link href={`/orders/${order.id}`} className="font-mono font-medium text-primary hover:text-primary-hover">
                   #{formatShortId(order.id)}

@@ -16,13 +16,13 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
     "bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active shadow-sm disabled:bg-disabled-bg disabled:text-disabled-text disabled:border disabled:border-disabled-border",
   secondary:
-    "bg-surface border border-border-strong text-text-primary shadow-sm hover:border-text-muted hover:bg-[#FAF8F4] active:border-text-muted active:bg-[#F1EDE6] disabled:bg-disabled-bg disabled:text-disabled-text disabled:border-disabled-border",
+    "bg-surface border border-border-strong text-text-primary shadow-sm hover:border-text-muted hover:bg-overlay active:border-text-muted active:bg-overlay-active disabled:bg-disabled-bg disabled:text-disabled-text disabled:border-disabled-border",
   ghost:
-    "text-text-secondary hover:bg-black/5 hover:text-text-primary active:bg-black/10 disabled:text-disabled-text",
+    "text-text-secondary hover:bg-overlay hover:text-text-primary active:bg-overlay-active disabled:text-disabled-text",
   destructive:
-    "bg-error text-white hover:bg-[#961D16] active:bg-[#7E1712] disabled:bg-disabled-bg disabled:text-disabled-text disabled:border disabled:border-disabled-border",
+    "bg-error text-on-error hover:bg-error-hover active:bg-error-active disabled:bg-disabled-bg disabled:text-disabled-text disabled:border disabled:border-disabled-border",
   link: "text-primary hover:text-primary-hover underline-offset-4 hover:underline px-0 h-auto font-medium disabled:text-disabled-text",
-  icon: "h-11 w-11 rounded-md text-text-secondary hover:bg-black/5 hover:text-text-primary active:bg-black/10 disabled:text-disabled-text disabled:bg-transparent",
+  icon: "h-11 w-11 rounded-md text-text-secondary hover:bg-overlay hover:text-text-primary active:bg-overlay-active disabled:text-disabled-text disabled:bg-transparent",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

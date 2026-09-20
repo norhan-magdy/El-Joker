@@ -29,7 +29,7 @@ function OrderTable({ orders }: { orders: Order[] }) {
         </thead>
         <tbody>
           {orders.map((order) => (
-            <tr key={order.id} className="border-b border-border transition-colors last:border-0 hover:bg-black/[0.02]">
+            <tr key={order.id} className="border-b border-border transition-colors last:border-0 hover:bg-overlay">
               <td className="px-5 py-3">
                 <span className="font-mono font-medium text-text-primary">#{formatShortId(order.id)}</span>
               </td>

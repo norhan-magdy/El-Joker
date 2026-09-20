@@ -43,7 +43,7 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls="user-menu"
-        className={`inline-flex max-w-44 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-text-primary transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${compact ? "h-8" : "h-9"}`}
+        className={`inline-flex max-w-44 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-text-primary transition-colors hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${compact ? "h-8" : "h-9"}`}
       >
         <span className="truncate">{user.name}</span>
         <svg aria-hidden className={`h-4 w-4 shrink-0 text-text-muted transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
@@ -62,13 +62,13 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
               href={item.href}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center rounded-md px-3 py-2 text-sm text-text-primary transition-colors hover:bg-black/5"
+              className="flex w-full items-center rounded-md px-3 py-2 text-sm text-text-primary transition-colors hover:bg-overlay"
             >
               {item.label}
             </Link>
           ))}
           {items.length > 0 ? <div className="my-1 h-px bg-border" /> : null}
-          <div className="flex w-full items-center rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-black/5">
+          <div className="flex w-full items-center rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-overlay">
             <LogoutButton />
           </div>
         </div>
