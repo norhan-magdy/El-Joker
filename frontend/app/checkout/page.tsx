@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { checkout, errorMessage } from "@/lib/api";
+import { checkout, errorMessage, isStockConflict } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
@@ -29,8 +29,9 @@ type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 export default function CheckoutPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { items, subtotal } = useCart();
+  const { items, subtotal, hasStockIssue } = useCart();
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [stockError, setStockError] = useState<string | null>(null);
 
   const {
     register,
@@ -48,9 +49,19 @@ export default function CheckoutPage() {
       void queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
     onError: (err) => {
+      // the server is the authority on stock, so a conflict re-reads the cart
+      // instead of only toasting
+      if (isStockConflict(err)) {
+        setStockError(err.message);
+        void queryClient.invalidateQueries({ queryKey: ["cart"] });
+        void queryClient.invalidateQueries({ queryKey: ["products"] });
+        return;
+      }
       toast.error(errorMessage(err));
     },
   });
+
+  const blocked = hasStockIssue || !!stockError;
 
   if (createdOrderId) {
     return (
@@ -135,12 +146,20 @@ export default function CheckoutPage() {
                   Your cart is empty. Add items before checking out.
                 </p>
               )}
+              {blocked && items.length > 0 && (
+                <p className="mt-4 rounded-lg bg-error-bg p-3 text-sm text-error" role="alert">
+                  {stockError ?? "Some items are no longer available in the quantity you picked."}{" "}
+                  <Link href="/cart" className="font-medium underline underline-offset-2 hover:no-underline">
+                    Adjust your cart
+                  </Link>
+                </p>
+              )}
               <Button
                 type="submit"
                 fullWidth
                 className="mt-5"
                 loading={isSubmitting || mutation.isPending}
-                disabled={items.length === 0}
+                disabled={items.length === 0 || blocked}
               >
                 Place order
               </Button>

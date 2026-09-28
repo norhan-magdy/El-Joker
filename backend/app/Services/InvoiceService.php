@@ -10,11 +10,10 @@ use Dompdf\Options;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceService
 {
-    private const DISK = 'local';
-
     public function listForAdmin(?string $search = null): LengthAwarePaginator
     {
         return Invoice::query()
@@ -60,8 +59,8 @@ class InvoiceService
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        Storage::disk(self::DISK)->put(
-            self::pathFor($invoice->invoice_number),
+        Storage::disk($this->disk())->put(
+            $this->pathFor($invoice->invoice_number),
             $dompdf->output(),
         );
 
@@ -70,13 +69,41 @@ class InvoiceService
         ])->save();
     }
 
+    public function disk(): string
+    {
+        return (string) config('invoices.disk', 'local');
+    }
+
     public function pathFor(string $invoiceNumber): string
     {
         return 'invoices/'.$invoiceNumber.'.pdf';
     }
 
-    public function absolutePathFor(Invoice $invoice): string
+    public function exists(Invoice $invoice): bool
     {
-        return Storage::disk(self::DISK)->path($this->pathFor($invoice->invoice_number));
+        return Storage::disk($this->disk())->exists($this->pathFor($invoice->invoice_number));
+    }
+
+    /**
+     * Stream the PDF through the application so the file may live on any disk
+     * (local or object storage) without assuming it exists on this node.
+     */
+    public function download(Invoice $invoice): StreamedResponse
+    {
+        return Storage::disk($this->disk())->download(
+            $this->pathFor($invoice->invoice_number),
+            $invoice->invoice_number.'.pdf',
+            ['Content-Type' => 'application/pdf'],
+        );
+    }
+
+    public function temporaryUrlFor(Invoice $invoice, ?int $minutes = null): ?string
+    {
+        $minutes ??= (int) config('invoices.signed_url_minutes', 10);
+
+        return Storage::disk($this->disk())->temporaryUrl(
+            $this->pathFor($invoice->invoice_number),
+            now()->addMinutes($minutes),
+        );
     }
 }

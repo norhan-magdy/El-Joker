@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Services\PermissionService;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -18,5 +19,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ProductSeeder::class,
         ]);
+
+        app(PermissionService::class)->flushCache();
     }
 }

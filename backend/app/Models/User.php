@@ -29,8 +29,23 @@ class User extends Authenticatable
 
     public function hasPermissionTo(string $permission): bool
     {
-        return $this->permissionCache[$permission]
-            ??= app(PermissionService::class)->userHasPermission($this, $permission);
+        if (array_key_exists($permission, $this->permissionCache)) {
+            return $this->permissionCache[$permission];
+        }
+
+        return $this->permissionCache[$permission] = app(PermissionService::class)
+            ->userHasPermission($this, $permission);
+    }
+
+    public function hasAnyPermissionTo(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermissionTo($permission)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function hasRole(string $role): bool
@@ -46,6 +61,9 @@ class User extends Authenticatable
 
     public function syncAdminFlag(): void
     {
+        $this->permissionCache = [];
+        $this->roleCache = [];
+
         $this->updateQuietly(['is_admin' => $this->roles()->where('name', 'admin')->exists()]);
     }
 
@@ -75,6 +93,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 }

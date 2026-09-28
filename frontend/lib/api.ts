@@ -29,7 +29,17 @@ export type ApiError =
       message: string;
       errors: Record<string, string[]>;
     }
+  | {
+      kind: "stock";
+      status: 409;
+      message: string;
+      product_id: string;
+      requested: number;
+      available: number;
+    }
   | { kind: "business"; status: number; message: string };
+
+export type StockConflict = Extract<ApiError, { kind: "stock" }>;
 
 export function isApiError(err: unknown): err is ApiError {
   return (
@@ -37,8 +47,17 @@ export function isApiError(err: unknown): err is ApiError {
     err !== null &&
     "kind" in err &&
     ((err as ApiError).kind === "validation" ||
+      (err as ApiError).kind === "stock" ||
       (err as ApiError).kind === "business")
   );
+}
+
+export function isStockConflict(err: unknown): err is StockConflict {
+  return isApiError(err) && err.kind === "stock";
+}
+
+export function stockAvailable(err: unknown): number | null {
+  return isStockConflict(err) ? err.available : null;
 }
 
 export function errorMessage(err: unknown, fallback = "Something went wrong."): string {
@@ -147,6 +166,22 @@ async function request<T>(
         status: 422,
         message: msg,
         errors: (payload as { errors: Record<string, string[]> }).errors,
+      } satisfies ApiError;
+    }
+    if (
+      res.status === 409 &&
+      payload &&
+      typeof payload === "object" &&
+      (payload as { code?: string }).code === "insufficient_stock"
+    ) {
+      const stock = payload as { product_id?: string; requested?: number; available?: number };
+      throw {
+        kind: "stock",
+        status: 409,
+        message: msg,
+        product_id: stock.product_id ?? "",
+        requested: stock.requested ?? 0,
+        available: stock.available ?? 0,
       } satisfies ApiError;
     }
     throw { kind: "business", status: res.status, message: msg } satisfies ApiError;

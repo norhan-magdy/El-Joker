@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Cart;
+use App\Exceptions\InsufficientStockException;
+use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
@@ -47,32 +48,68 @@ class OrderService
     public function checkout(User $user, string $shippingAddress): Order
     {
         return DB::transaction(function () use ($user, $shippingAddress) {
-            /** @var Cart|null $cart */
-            $cart = $user->cart()
-                ->lockForUpdate()
-                ->with(['items' => fn ($query) => $query->lockForUpdate()->with('product')])
-                ->first();
+            $cart = $user->cart()->first();
 
             abort_if(
-                ! $cart || $cart->items->isEmpty(),
+                ! $cart || $cart->items()->doesntExist(),
                 Response::HTTP_UNPROCESSABLE_ENTITY,
                 'Your cart is empty.'
             );
 
+            $items = $cart->items()
+                ->with(['product' => fn ($query) => $query->with('inventory')])
+                ->get()
+                ->keyBy(fn ($item) => $item->product_id);
+
+            abort_if(
+                $items->contains(fn ($item) => ! $item->product || ! $item->product->is_active),
+                Response::HTTP_CONFLICT,
+                'One or more products in your cart are no longer available.'
+            );
+
+            $productIds = $items->keys()->sort()->values()->all();
+            $itemIds = $items->pluck('id')->all();
+
+            Inventory::query()
+                ->whereIn('product_id', $productIds)
+                ->orderBy('product_id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('product_id');
+
+            $cart = $user->cart()->lockForUpdate()->first();
+
+            abort_if(! $cart, Response::HTTP_UNPROCESSABLE_ENTITY, 'Your cart is empty.');
+
+            $cart->items()
+                ->whereIn('id', $itemIds)
+                ->orderBy('product_id')
+                ->lockForUpdate()
+                ->get();
+
+            $items = $cart->items()
+                ->whereIn('id', $itemIds)
+                ->with(['product' => fn ($query) => $query->with('inventory')])
+                ->get()
+                ->keyBy('product_id');
+
             $total = 0.0;
             $lines = [];
 
-            foreach ($cart->items as $item) {
-                $inventory = $item->product->inventory()->lockForUpdate()->first();
+            foreach ($items->values() as $item) {
+                $inventory = $item->product->inventory;
 
-                abort_if(
+                throw_if(
                     ! $inventory || $inventory->quantity < $item->quantity,
-                    Response::HTTP_CONFLICT,
-                    "Insufficient stock for '{$item->product->title}'."
+                    new InsufficientStockException(
+                        $item->product_id,
+                        (int) $item->quantity,
+                        (int) ($inventory?->quantity ?? 0),
+                        $item->product->title,
+                    ),
                 );
 
-                $lineTotal = (float) $item->product->price * $item->quantity;
-                $total += $lineTotal;
+                $total += (float) $item->product->price * $item->quantity;
 
                 $lines[] = [
                     'product' => $item->product,
@@ -98,64 +135,75 @@ class OrderService
                 ])->all(),
             );
 
-            $caseSql = '';
-            $bindings = [];
-
             foreach ($lines as $line) {
-                $caseSql .= 'WHEN product_id = ? THEN quantity - ? ';
-                $bindings[] = $line['product']->id;
-                $bindings[] = $line['quantity'];
+                $affected = Inventory::query()
+                    ->where('product_id', $line['product']->id)
+                    ->where('quantity', '>=', $line['quantity'])
+                    ->decrement('quantity', $line['quantity']);
+
+                throw_if(
+                    $affected !== 1,
+                    new InsufficientStockException(
+                        $line['product']->id,
+                        (int) $line['quantity'],
+                        0,
+                        $line['product']->title,
+                    ),
+                );
             }
 
-            $ids = collect($lines)->pluck('product.id');
-            $bindings = array_merge($bindings, $ids->all());
-            $idPlaceholders = rtrim(str_repeat('?,', $ids->count()), ',');
-
-            DB::update(
-                "UPDATE inventory SET quantity = CASE {$caseSql} END WHERE product_id IN ({$idPlaceholders})",
-                $bindings,
-            );
-
             $order->invoice()->create([
-                'invoice_number' => 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(8)),
+                'invoice_number' => 'INV-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)),
                 'issued_at' => now(),
             ]);
 
             $this->invoices->generateFor($order);
 
-            $cart->items()->delete();
+            $cart->items()->whereIn('id', $itemIds)->delete();
 
             return $order->load(['items.product', 'invoice']);
-        });
+        }, 3);
     }
 
     public function recordPayment(Order $order, string $provider, ?string $transactionId = null): Payment
     {
         return DB::transaction(function () use ($order, $provider, $transactionId) {
+            $locked = Order::query()
+                ->lockForUpdate()
+                ->findOrFail($order->id);
+
             abort_if(
-                $order->status !== 'pending',
+                $locked->status !== 'pending',
                 Response::HTTP_CONFLICT,
-                "Order is already '{$order->status}'."
+                "Order is already '{$locked->status}'."
             );
 
-            $payment = $order->payments()->create([
+            $payment = $locked->payments()->create([
                 'provider' => $provider,
                 'transaction_id' => $transactionId ?? (string) Str::uuid(),
-                'amount' => $order->total_amount,
+                'amount' => $locked->total_amount,
                 'status' => 'paid',
                 'raw_response' => null,
             ]);
 
-            $order->update(['status' => 'paid']);
+            $locked->update(['status' => 'paid']);
+
+            $order->setRawAttributes($locked->getAttributes(), true);
 
             return $payment;
-        });
+        }, 3);
     }
 
     public function updateStatus(Order $order, string $status): Order
     {
-        $order->update(['status' => $status]);
+        return DB::transaction(function () use ($order, $status) {
+            $locked = Order::query()->lockForUpdate()->findOrFail($order->id);
 
-        return $order->refresh();
+            $locked->update(['status' => $status]);
+
+            $order->setRawAttributes($locked->getAttributes(), true);
+
+            return $order->refresh();
+        }, 3);
     }
 }
