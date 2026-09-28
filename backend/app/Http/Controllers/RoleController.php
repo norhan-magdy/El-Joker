@@ -36,7 +36,11 @@ class RoleController extends Controller
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
         ]);
 
-        return response()->json(['data' => Role::create($validated)], 201);
+        $role = Role::create($validated);
+
+        $this->permissions->flushCache();
+
+        return response()->json(['data' => $role], 201);
     }
 
     public function destroy(Role $role): JsonResponse
@@ -45,6 +49,8 @@ class RoleController extends Controller
 
         $role->permissions()->detach();
         $role->delete();
+
+        $this->permissions->flushCache();
 
         return response()->json(['message' => 'Role deleted.']);
     }

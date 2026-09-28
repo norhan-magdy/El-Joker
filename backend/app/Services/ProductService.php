@@ -5,11 +5,14 @@ namespace App\Services;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProductService
 {
+    public const PRICE_RANGE_CACHE_KEY = 'catalog:price-range';
+
     public function list(
         ?string $search = null,
         ?array $categorySlugs = null,
@@ -43,15 +46,22 @@ class ProductService
 
     public function priceRange(): array
     {
-        $range = Product::query()
-            ->where('is_active', true)
-            ->selectRaw('MIN(price) as min_price, MAX(price) as max_price')
-            ->first();
+        return Cache::remember(self::PRICE_RANGE_CACHE_KEY, now()->addMinutes(5), function () {
+            $range = Product::query()
+                ->where('is_active', true)
+                ->selectRaw('MIN(price) as min_price, MAX(price) as max_price')
+                ->first();
 
-        return [
-            'min' => (float) ($range->min_price ?? 0),
-            'max' => (float) ($range->max_price ?? 0),
-        ];
+            return [
+                'min' => (float) ($range->min_price ?? 0),
+                'max' => (float) ($range->max_price ?? 0),
+            ];
+        });
+    }
+
+    public function forgetPriceRange(): void
+    {
+        Cache::forget(self::PRICE_RANGE_CACHE_KEY);
     }
 
     public function find(string $id, bool $withInactive = false): Product
@@ -79,6 +89,8 @@ class ProductService
 
             $product->inventory()->create(['quantity' => $stock]);
 
+            $this->forgetPriceRange();
+
             return $product->load(['category', 'inventory']);
         });
     }
@@ -105,6 +117,8 @@ class ProductService
                 );
             }
 
+            $this->forgetPriceRange();
+
             return $product->refresh()->load(['category', 'inventory']);
         });
     }
@@ -115,11 +129,18 @@ class ProductService
             $product->inventory()->delete();
             $product->delete();
         });
+
+        $this->forgetPriceRange();
     }
 
     private function uniqueSlug(string $source, ?string $ignoreId = null): string
     {
         $base = Str::slug($source);
+
+        if ($base === '') {
+            $base = 'product-'.Str::lower(Str::random(8));
+        }
+
         $slug = $base;
         $i = 1;
 
