@@ -8,12 +8,26 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CartService
 {
     public function getCart(User $user): Cart
     {
-        return $user->cart()->firstOrCreate([]);
+        $cart = $user->cart()->first();
+
+        if ($cart) {
+            return $cart;
+        }
+
+        $user->cart()->insertOrIgnore([
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $user->cart()->firstOrFail();
     }
 
     public function items(User $user)
@@ -36,13 +50,21 @@ class CartService
                 'Product is out of stock.'
             );
 
-            $cart = $this->getCart($user);
+            $cart = $user->cart()->lockForUpdate()->first() ?? $this->getCart($user);
 
             $item = $cart
                 ->items()
                 ->where('product_id', $product->id)
                 ->lockForUpdate()
                 ->first();
+
+            $requested = ($item?->quantity ?? 0) + $quantity;
+
+            abort_if(
+                $requested > $inventory->quantity,
+                Response::HTTP_CONFLICT,
+                "Only {$inventory->quantity} left in stock for '{$product->title}'."
+            );
 
             if ($item) {
                 $item->increment('quantity', $quantity);
@@ -54,7 +76,7 @@ class CartService
                 'product_id' => $product->id,
                 'quantity' => $quantity,
             ])->load('product.category');
-        });
+        }, 3);
     }
 
     public function updateItem(User $user, string $itemId, int $quantity): CartItem
