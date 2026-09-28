@@ -26,20 +26,28 @@ class AuthController extends Controller
         return Hash::check($password, $user->password);
     }
 
+    private function issueToken(User $user, string $name): string
+    {
+        $user->tokens()->where('name', $name)->delete();
+
+        return $user->createToken($name, expiresAt: now()->addMinutes((int) config('sanctum.expiration')))->plainTextToken;
+    }
+
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::min(8)],
+            // 'device_name' => 'nullable|string', // Device-Based Sessions
         ]);
 
-        $user = User::create([...$validated, 'is_active' => true]);
+        $user = User::create($validated);
 
         app(\App\Services\PermissionService::class)->assignRole($user, 'customer');
 
         return response()->json([
-            'token' => $user->createToken('api')->plainTextToken,
+            'token' => $this->issueToken($user, 'api'),
             'user' => $this->userPayload($user->load('roles')),
         ], 201);
     }
@@ -58,7 +66,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'token' => $user->createToken('api')->plainTextToken,
+            'token' => $this->issueToken($user, 'api'),
             'user' => $this->userPayload($user),
         ]);
     }
@@ -81,7 +89,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'token' => $user->createToken('admin')->plainTextToken,
+            'token' => $this->issueToken($user, 'admin'),
             'user' => $this->userPayload($user),
         ]);
     }

@@ -10,9 +10,9 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('auth/register', [AuthController::class, 'register']);
-Route::post('auth/login', [AuthController::class, 'login']);
-Route::post('admin/login', [AuthController::class, 'createAdminToken']);
+Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:register');
+Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('admin/login', [AuthController::class, 'createAdminToken'])->middleware('throttle:login');
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{category}', [CategoryController::class, 'show']);
@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
         Route::get('orders/{order}/invoice/pdf', [OrderController::class, 'invoicePdf'])->name('orders.invoice-pdf');
-        Route::post('orders/checkout', [OrderController::class, 'store']);
+        Route::post('orders/checkout', [OrderController::class, 'store'])->middleware('throttle:checkout');
     });
 });
 
