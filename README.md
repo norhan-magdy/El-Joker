@@ -70,7 +70,7 @@ Built with **Laravel** (REST API) + **Next.js** (storefront & admin) + a **React
 │   └──────────────────────┘   └─────────────────────────────┘    │
 │   ┌──────────────────────┐   ┌─────────────────────────────┐    │
 │   │   Queue worker       │   │  GenerateInvoicePdf job     │    │
-│   └──────────────────────┘   └─▶ dompdf ─▶ invoices/*.pdf  │    │
+│   └──────────────────────┘   └─▶ dompdf ─▶ invoices/*.pdf │    │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
                     ┌──────────▼──────────┐
@@ -108,8 +108,7 @@ sequenceDiagram
 | **Frontend**     | Next.js 16 (App Router) · React 19 · TypeScript 5                            |
 | **State & Data** | TanStack Query · Zustand (+ persist) · react-hook-form · Zod                 |
 | **Styling**      | Tailwind CSS v4 · CSS variables theming · dark mode                          |
-| **Database**     | PostgreSQL 16 (pg_trgm search) · SQLite for local dev · Eloquent ORM         |
-| **Notifications**| sonner (toasts, React)                                                       |
+| **Database**     | PostgreSQL 16 (pg_trgm search) · Eloquent ORM                                |
 | **Mobile (WIP)** | React Native                                                                |
 
 ---
