@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\Payment;
@@ -98,10 +99,14 @@ class OrderService
             foreach ($items->values() as $item) {
                 $inventory = $item->product->inventory;
 
-                abort_if(
+                throw_if(
                     ! $inventory || $inventory->quantity < $item->quantity,
-                    Response::HTTP_CONFLICT,
-                    "Insufficient stock for '{$item->product->title}'."
+                    new InsufficientStockException(
+                        $item->product_id,
+                        (int) $item->quantity,
+                        (int) ($inventory?->quantity ?? 0),
+                        $item->product->title,
+                    ),
                 );
 
                 $total += (float) $item->product->price * $item->quantity;
@@ -136,10 +141,14 @@ class OrderService
                     ->where('quantity', '>=', $line['quantity'])
                     ->decrement('quantity', $line['quantity']);
 
-                abort_if(
+                throw_if(
                     $affected !== 1,
-                    Response::HTTP_CONFLICT,
-                    "Insufficient stock for '{$line['product']->title}'."
+                    new InsufficientStockException(
+                        $line['product']->id,
+                        (int) $line['quantity'],
+                        0,
+                        $line['product']->title,
+                    ),
                 );
             }
 

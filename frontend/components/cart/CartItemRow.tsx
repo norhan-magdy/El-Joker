@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { updateCartItem, removeCartItem, errorMessage } from "@/lib/api";
+import { updateCartItem, removeCartItem, errorMessage, isStockConflict } from "@/lib/api";
+import { availableStock, isOverStock, maxSelectable } from "@/lib/cart-stock";
 import type { CartItem } from "@/lib/types";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { Price } from "@/components/ui/Price";
@@ -11,10 +13,15 @@ import { QuantityStepper } from "@/components/cart/QuantityStepper";
 
 export function CartItemRow({ item }: { item: CartItem }) {
   const queryClient = useQueryClient();
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  const available = availableStock(item);
+  const overStock = isOverStock(item);
 
   const updateMutation = useMutation({
     mutationFn: (quantity: number) => updateCartItem(item.id, { quantity }),
     onMutate: async (quantity) => {
+      setUpdateError(null);
       await queryClient.cancelQueries({ queryKey: ["cart"] });
       const prev = queryClient.getQueryData<{ data: CartItem[] }>(["cart"]);
       queryClient.setQueryData<{ data: CartItem[] }>(["cart"], (old) => ({
@@ -27,7 +34,10 @@ export function CartItemRow({ item }: { item: CartItem }) {
     },
     onError: (err, _q, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(["cart"], ctx.prev);
-      toast.error(errorMessage(err));
+      setUpdateError(errorMessage(err));
+      if (isStockConflict(err)) {
+        void queryClient.invalidateQueries({ queryKey: ["products"] });
+      }
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ["cart"] });
@@ -61,10 +71,41 @@ export function CartItemRow({ item }: { item: CartItem }) {
         <div className="mt-2 flex items-center gap-3">
           <QuantityStepper
             value={item.quantity}
+            max={maxSelectable(item)}
             onChange={(v) => updateMutation.mutate(v)}
-            disabled={updateMutation.isPending || removeMutation.isPending}
+            // nothing is orderable when the product is out of stock, the line has
+            // to be removed instead
+            disabled={updateMutation.isPending || removeMutation.isPending || available === 0}
           />
         </div>
+        {overStock && (
+          <p
+            className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-error-bg px-2.5 py-1.5 text-xs text-error"
+            role="alert"
+          >
+            <span className="font-medium">
+              {available === 0
+                ? "Out of stock"
+                : `Only ${available} left in stock (you have ${item.quantity})`}
+            </span>
+            {available !== null && available > 0 && (
+              <button
+                type="button"
+                onClick={() => updateMutation.mutate(available)}
+                disabled={updateMutation.isPending}
+                className="font-medium underline underline-offset-2 transition-colors hover:no-underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-60"
+              >
+                Set to {available}
+              </button>
+            )}
+            {available === 0 && <span>Remove it to continue.</span>}
+          </p>
+        )}
+        {updateError && (
+          <p className="mt-2 text-xs text-error" role="alert">
+            {updateError}
+          </p>
+        )}
       </div>
       <div className="flex flex-col items-end gap-2">
         <Price value={item.line_total} className="text-sm font-medium text-text-primary" />

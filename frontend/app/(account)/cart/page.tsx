@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 
 export default function CartPage() {
-  const { items, count, subtotal } = useCart();
+  const { items, count, subtotal, hasStockIssue } = useCart();
 
   return (
     <div className="space-y-8">
@@ -32,7 +32,7 @@ export default function CartPage() {
             ))}
           </ul>
           <div className="lg:top-24 lg:self-start">
-            <CartSummary count={count} subtotal={subtotal} />
+            <CartSummary count={count} subtotal={subtotal} hasStockIssue={hasStockIssue} />
           </div>
         </div>
       )}

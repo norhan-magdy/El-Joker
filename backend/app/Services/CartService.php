@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Response;
@@ -34,7 +36,7 @@ class CartService
     {
         return $this->getCart($user)
             ->items()
-            ->with('product.category')
+            ->with(['product.category', 'product.inventory'])
             ->get();
     }
 
@@ -44,10 +46,10 @@ class CartService
             $product = Product::where('is_active', true)->findOrFail($productId);
 
             $inventory = $product->inventory()->lockForUpdate()->first();
-            abort_if(
+
+            throw_if(
                 ! $inventory || $inventory->quantity < 1,
-                Response::HTTP_CONFLICT,
-                'Product is out of stock.'
+                new InsufficientStockException($product->id, $quantity, 0, $product->title),
             );
 
             $cart = $user->cart()->lockForUpdate()->first() ?? $this->getCart($user);
@@ -60,31 +62,72 @@ class CartService
 
             $requested = ($item?->quantity ?? 0) + $quantity;
 
-            abort_if(
+            throw_if(
                 $requested > $inventory->quantity,
-                Response::HTTP_CONFLICT,
-                "Only {$inventory->quantity} left in stock for '{$product->title}'."
+                new InsufficientStockException(
+                    $product->id,
+                    $requested,
+                    (int) $inventory->quantity,
+                    $product->title,
+                ),
             );
 
             if ($item) {
                 $item->increment('quantity', $quantity);
 
-                return $item->refresh()->load('product.category');
+                return $item->refresh()->load('product.category', 'product.inventory');
             }
 
             return $cart->items()->create([
                 'product_id' => $product->id,
                 'quantity' => $quantity,
-            ])->load('product.category');
+            ])->load('product.category', 'product.inventory');
         }, 3);
     }
 
     public function updateItem(User $user, string $itemId, int $quantity): CartItem
     {
-        $item = $user->cart->items()->findOrFail($itemId);
-        $item->update(['quantity' => $quantity]);
+        return DB::transaction(function () use ($user, $itemId, $quantity) {
+            $preReadProductId = CartItem::query()
+                ->where('id', $itemId)
+                ->whereIn('cart_id', $user->cart()->select('id'))
+                ->value('product_id');
 
-        return $item->load('product.category');
+            abort_unless($preReadProductId, 404);
+
+            $inventory = Inventory::query()
+                ->where('product_id', $preReadProductId)
+                ->lockForUpdate()
+                ->first();
+
+            $cart = $user->cart()->lockForUpdate()->first();
+
+            abort_unless($cart, 404);
+
+            $item = $cart->items()->where('id', $itemId)->lockForUpdate()->first();
+
+            abort_unless($item, 404);
+
+            abort_if(
+                $item->product_id !== $preReadProductId,
+                Response::HTTP_CONFLICT,
+                'Cart item changed, please retry.',
+            );
+
+            throw_if(
+                ! $inventory || $quantity > $inventory->quantity,
+                new InsufficientStockException(
+                    $item->product_id,
+                    $quantity,
+                    (int) ($inventory?->quantity ?? 0),
+                    $item->product->title,
+                ),
+            );
+
+            $item->update(['quantity' => $quantity]);
+
+            return $item->load('product.category', 'product.inventory');
+        }, 3);
     }
 
     public function removeItem(User $user, string $itemId): void

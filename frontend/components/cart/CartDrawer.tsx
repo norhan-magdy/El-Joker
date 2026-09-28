@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Drawer } from "@/components/shell/Drawer";
 import { useCart } from "@/components/cart/useCart";
+import { availableStock, isOverStock } from "@/lib/cart-stock";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { Price } from "@/components/ui/Price";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +14,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onClose }: CartDrawerProps) {
-  const { items, subtotal } = useCart();
+  const { items, subtotal, hasStockIssue } = useCart();
 
   return (
     <Drawer open={open} onClose={onClose} side="right" title="Cart">
@@ -51,6 +52,13 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   <p className="text-xs text-text-muted">
                     Qty {item.quantity}
                   </p>
+                  {isOverStock(item) && (
+                    <p className="mt-0.5 text-xs font-medium text-error">
+                      {availableStock(item) === 0
+                        ? "Out of stock"
+                        : `Only ${availableStock(item)} left in stock`}
+                    </p>
+                  )}
                 </div>
                 <Price value={item.line_total} className="shrink-0 text-sm font-medium" />
               </li>
@@ -61,9 +69,14 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
               <span className="text-text-secondary">Subtotal</span>
               <Price value={subtotal} className="font-semibold" />
             </div>
+            {hasStockIssue && (
+              <p className="mb-3 rounded-md bg-error-bg p-2.5 text-xs text-error">
+                Some items are no longer available in the quantity you picked.
+              </p>
+            )}
             <Link href="/cart" onClick={onClose} className="block">
-              <Button fullWidth variant="secondary">
-                View cart
+              <Button fullWidth variant={hasStockIssue ? "primary" : "secondary"}>
+                {hasStockIssue ? "Review cart" : "View cart"}
               </Button>
             </Link>
           </div>

@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/Button";
 interface CartSummaryProps {
   count: number;
   subtotal: number;
+  hasStockIssue?: boolean;
 }
 
-export function CartSummary({ count, subtotal }: CartSummaryProps) {
+export function CartSummary({ count, subtotal, hasStockIssue = false }: CartSummaryProps) {
   return (
     <div className="rounded-lg border border-border bg-surface p-4 shadow-sm sm:p-5">
       <h3 className="text-lg font-semibold text-text-primary">Summary</h3>
@@ -32,10 +33,24 @@ export function CartSummary({ count, subtotal }: CartSummaryProps) {
           </dd>
         </div>
       </dl>
+      {hasStockIssue && (
+        <p className="mt-3 rounded-md bg-error-bg p-2.5 text-xs text-error">
+          Totals use your cart quantities, which are not all in stock yet.
+        </p>
+      )}
       <div className="mt-5 space-y-2">
-        <Link href="/checkout" className="block">
-          <Button fullWidth>Checkout</Button>
-        </Link>
+        {hasStockIssue ? (
+          <>
+            <Button fullWidth disabled>
+              Checkout
+            </Button>
+            <p className="text-xs text-text-muted">Adjust the highlighted items to continue.</p>
+          </>
+        ) : (
+          <Link href="/checkout" className="block">
+            <Button fullWidth>Checkout</Button>
+          </Link>
+        )}
         <Link href="/shop" className="block">
           <Button variant="secondary" fullWidth>
             Continue shopping

@@ -56,7 +56,10 @@ export function ProductDetail({ productId }: { productId: string }) {
     );
   } else {
     const product = query.data.data;
-    const isOutOfStock = typeof product.stock === "number" && product.stock === 0;
+    const stock = product.stock;
+    const isOutOfStock = typeof stock === "number" && stock === 0;
+    const isLowStock = typeof stock === "number" && stock > 0 && stock <= 5;
+    const hasStock = typeof stock === "number";
 
     content = (
       <div className="space-y-6">
@@ -112,13 +115,17 @@ href={`/shop?categories=${product.category.slug}`}
             <p className="text-sm leading-6 text-text-secondary">
               {isOutOfStock ? (
                 <span className="font-medium text-error">Out of stock</span>
-              ) : (
+              ) : isLowStock ? (
+                <span className="font-medium text-warning">Only {stock} left in stock</span>
+              ) : hasStock ? (
                 <span className="inline-flex items-center gap-1.5 text-success">
                   <svg aria-hidden className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
                   </svg>
                   In stock
                 </span>
+              ) : (
+                <span className="text-text-muted">Availability confirmed at checkout</span>
               )}
             </p>
 
