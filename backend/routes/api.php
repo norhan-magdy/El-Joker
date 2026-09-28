@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
         Route::get('orders/{order}/invoice/pdf', [OrderController::class, 'invoicePdf'])->name('orders.invoice-pdf');
+        Route::get('orders/{order}/invoice/link', [OrderController::class, 'invoicePdfLink'])->name('orders.invoice-link');
         Route::post('orders/checkout', [OrderController::class, 'store'])->middleware('throttle:checkout');
     });
 });

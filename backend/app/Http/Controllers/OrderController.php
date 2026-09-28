@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckoutRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Invoice;
 use App\Services\InvoiceService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\File;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
@@ -38,21 +38,32 @@ class OrderController extends Controller
         return new OrderResource($this->orders->find(request()->user(), $order));
     }
 
-    public function invoicePdf(string $order): BinaryFileResponse
+    public function invoicePdf(string $order): StreamedResponse
     {
-        $order = $this->orders->find(request()->user(), $order);
+        return $this->invoices->download($this->availableInvoice($order));
+    }
 
-        $invoice = $order->invoice;
+    public function invoicePdfLink(string $order): JsonResponse
+    {
+        $invoice = $this->availableInvoice($order);
+
+        return response()->json([
+            'url' => $this->invoices->temporaryUrlFor($invoice),
+            'expires_in_minutes' => (int) config('invoices.signed_url_minutes', 10),
+        ]);
+    }
+
+    private function availableInvoice(string $orderId): Invoice
+    {
+        $invoice = $this->orders->find(request()->user(), $orderId)->invoice;
 
         abort_unless(
-            $invoice && File::exists($this->invoices->absolutePathFor($invoice)),
+            $invoice && $this->invoices->exists($invoice),
             404,
             'Invoice PDF is not available for this order.',
         );
 
-        return response()->file($this->invoices->absolutePathFor($invoice), [
-            'Content-Type' => 'application/pdf',
-        ]);
+        return $invoice;
     }
 
     public function update(UpdateOrderStatusRequest $request, string $order): OrderResource
