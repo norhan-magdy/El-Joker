@@ -40,6 +40,16 @@ export const PAGE_SIZE_ORDERS = 15;
 export const CART_ITEM_MIN_QTY = 1;
 export const CART_ITEM_MAX_QTY = 100;
 
+/**
+ * How long a quantity edit rests before it is written to the server.
+ *
+ * Trailing and self-resetting, not a fixed countdown: every further tap pushes
+ * the write out, so a burst of taps collapses into one `PUT` carrying the final
+ * number, while a single tap still lands almost immediately. Deliberately well
+ * under the ~600ms it takes to read your own change as "not working".
+ */
+export const CART_SAVE_DEBOUNCE_MS = 700;
+
 export const PRODUCT_PRICE_MAX = 9999999999.99;
 
 export const CHECKOUT_ADDRESS_MIN = 10;

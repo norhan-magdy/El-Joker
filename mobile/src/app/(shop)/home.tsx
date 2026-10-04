@@ -71,7 +71,7 @@ export default function HomeScreen() {
     <View style={[styles.fill, { backgroundColor: colors.background }]}>
       <ScreenHeader
         title="El Joker"
-        subtitle="بتاع كل حاجة"
+        subtitle="byta3 kol 7aga"
         action={<ThemeToggleButton />}
       />
 

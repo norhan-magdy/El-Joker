@@ -25,31 +25,44 @@ import type { CartItem } from "@/lib/types";
 export default function CartScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const cart = useCart();
 
   const [pendingRemoval, setPendingRemoval] = useState<CartItem | null>(null);
   const [lineError, setLineError] = useState<string | null>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   /**
-   * Writes the new quantity straight to the server. A 409 means the cached stock
-   * was optimistic, so the message quotes the server's own `available` value and
-   * the refetch pulls the corrected number into the stepper.
+   * Quantity writes are applied to the cache on tap and debounced by the hook,
+   * so there is nothing to await here. A 409 arrives later, from the hook's
+   * flush, and means the cached stock was optimistic — the message quotes the
+   * server's own `available` value and the rollback restores the last confirmed
+   * quantity in the stepper.
    */
-  const setQuantity = (item: CartItem, quantity: number) => {
-    setLineError(null);
-    cart.update.mutate(
-      { id: item.id, quantity },
-      {
-        onError: (error) => {
-          const available = stockAvailable(error);
-          setLineError(
-            available === null
-              ? errorMessage(error)
-              : `Only ${available} available right now.`
-          );
-        },
+  const cart = useCart(true, {
+    onSaveError: (error) => {
+      const available = stockAvailable(error);
+      setLineError(
+        available === null
+          ? errorMessage(error)
+          : `Only ${available} available right now.`
+      );
+    },
+  });
+
+  /**
+   * The stepper no longer blocks on the network, so checkout has to make sure
+   * nothing is still resting — otherwise the order is placed with the quantity
+   * the server last saw rather than the one on screen. A rejected flush stops
+   * the navigation instead of silently ordering the wrong thing.
+   */
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      if (await cart.flushPending()) {
+        router.push("/checkout");
       }
-    );
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   return (
@@ -103,8 +116,10 @@ export default function CartScreen() {
                     <QuantityStepper
                       value={item.quantity}
                       stock={item.product.stock}
-                      onChange={(quantity) => setQuantity(item, quantity)}
-                      disabled={cart.isMutating}
+                      onChange={(quantity) => {
+                        setLineError(null);
+                        cart.setQuantity(item, quantity);
+                      }}
                     />
                     <Price amount={item.line_total} />
                   </View>
@@ -163,7 +178,10 @@ export default function CartScreen() {
           </View>
           <Button
             label="Checkout"
-            onPress={() => router.push("/checkout")}
+            onPress={() => {
+              void handleCheckout();
+            }}
+            loading={checkingOut}
             fullWidth
           />
         </View>
@@ -208,6 +226,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
+  },
+  priceStack: {
+    alignItems: "flex-end",
+    gap: 2,
   },
   remove: {
     flexDirection: "row",
