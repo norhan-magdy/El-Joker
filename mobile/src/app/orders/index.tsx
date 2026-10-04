@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { OrderStatusBadge } from "@/components/order/OrderStatusBadge";
 import { Card } from "@/components/ui/Card";
+import { ListSeparator } from "@/components/ui/ListSeparator";
 import { Pagination } from "@/components/ui/Pagination";
 import { Price } from "@/components/ui/Price";
 import { ScreenState } from "@/components/ui/ScreenState";
@@ -93,9 +94,10 @@ export default function OrdersScreen() {
           renderItem={({ item }) => <OrderRow order={item} />}
           contentContainerStyle={{
             paddingHorizontal: spacing.lg,
+            paddingTop: spacing.md,
             paddingBottom: insets.bottom + spacing.xxl,
-            gap: spacing.md,
           }}
+          ItemSeparatorComponent={ListSeparator}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
             <Pagination

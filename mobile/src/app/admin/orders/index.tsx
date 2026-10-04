@@ -9,6 +9,7 @@ import { Screen } from "@/components/layout/Screen";
 import { OrderStatusBadge } from "@/components/order/OrderStatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ListSeparator } from "@/components/ui/ListSeparator";
 import { Pagination } from "@/components/ui/Pagination";
 import { Price } from "@/components/ui/Price";
 import { ScreenState } from "@/components/ui/ScreenState";
@@ -92,9 +93,10 @@ export default function AdminOrdersScreen() {
           renderItem={({ item }) => <AdminOrderRow order={item} />}
           contentContainerStyle={{
             paddingHorizontal: spacing.lg,
+            paddingTop: spacing.md,
             paddingBottom: insets.bottom + spacing.xxl,
-            gap: spacing.md,
           }}
+          ItemSeparatorComponent={ListSeparator}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
             <Pagination

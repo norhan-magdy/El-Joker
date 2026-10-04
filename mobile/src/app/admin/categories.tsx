@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -15,14 +15,10 @@ import { Input } from "@/components/ui/Input";
 import { ScreenState } from "@/components/ui/ScreenState";
 import { Select } from "@/components/ui/Select";
 import { Text } from "@/components/ui/Text";
-import {
-  createCategory,
-  deleteCategory,
-  listAllCategoriesFlattened,
-  updateCategory,
-} from "@/lib/api/catalog";
+import {createCategory,deleteCategory,updateCategory,} from "@/lib/api/catalog";
 import { errorMessage } from "@/lib/api/errors";
 import { applyServerErrors } from "@/lib/forms";
+import { useAllCategories } from "@/hooks/use-categories";
 import { queryKeys } from "@/lib/query-keys";
 import { categoryFormSchema, type CategoryFormValues } from "@/lib/schemas";
 import { radius, spacing } from "@/lib/theme/tokens";
@@ -49,10 +45,8 @@ export default function AdminCategoriesScreen() {
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
   const [formError, setFormError] = useState<unknown>(null);
 
-  const categories = useQuery({
-    queryKey: queryKeys.catalog.categories,
-    queryFn: () => listAllCategoriesFlattened(),
-  });
+  // Reads through the key that stores a `Category[]`; see `use-categories`.
+  const categories = useAllCategories();
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),

@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { Input } from "@/components/ui/Input";
+import { ListSeparator } from "@/components/ui/ListSeparator";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Pagination } from "@/components/ui/Pagination";
 import { Price } from "@/components/ui/Price";
@@ -128,9 +129,10 @@ export default function AdminProductsScreen() {
           )}
           contentContainerStyle={{
             paddingHorizontal: spacing.lg,
+            paddingTop: spacing.md,
             paddingBottom: insets.bottom + spacing.xxl,
-            gap: spacing.md,
           }}
+          ItemSeparatorComponent={ListSeparator}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
             <Pagination

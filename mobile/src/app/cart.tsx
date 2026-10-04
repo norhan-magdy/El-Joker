@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FormBanner } from "@/components/ui/FormBanner";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
+import { ListSeparator } from "@/components/ui/ListSeparator";
 import { Price } from "@/components/ui/Price";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { ScreenState } from "@/components/ui/ScreenState";
@@ -149,8 +150,8 @@ export default function CartScreen() {
           contentContainerStyle={{
             padding: spacing.lg,
             paddingBottom: insets.bottom + 140,
-            gap: spacing.md,
           }}
+          ItemSeparatorComponent={ListSeparator}
           showsVerticalScrollIndicator={false}
         />
 

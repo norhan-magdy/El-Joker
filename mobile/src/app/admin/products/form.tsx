@@ -14,14 +14,10 @@ import { Input } from "@/components/ui/Input";
 import { ScreenState } from "@/components/ui/ScreenState";
 import { Select } from "@/components/ui/Select";
 import { Text } from "@/components/ui/Text";
-import {
-  createProduct,
-  getProduct,
-  listAllCategoriesFlattened,
-  updateProduct,
-} from "@/lib/api/catalog";
+import { createProduct, getProduct, updateProduct } from "@/lib/api/catalog";
 import { errorMessage } from "@/lib/api/errors";
 import { applyServerErrors } from "@/lib/forms";
+import { useAllCategories } from "@/hooks/use-categories";
 import { queryKeys } from "@/lib/query-keys";
 import { productFormSchema, type ProductFormValues } from "@/lib/schemas";
 import { spacing } from "@/lib/theme/tokens";
@@ -60,10 +56,11 @@ export default function ProductFormScreen() {
     mode: "onBlur",
   });
 
-  const categories = useQuery({
-    queryKey: queryKeys.catalog.categories,
-    queryFn: () => listAllCategoriesFlattened(),
-  });
+  // The flattened walk, not `useCategoriesFlat`: that one shares the
+  // single-page key and resolves to a Paginated envelope, while this needs a
+  // `Category[]` to map. One cache key holds one value, so the picker reads it
+  // through the key that actually stores an array.
+  const categories = useAllCategories();
 
   // Read as admin. `show` only tolerates an inactive product when the caller
   // holds `products.manage`, and a public read sends no token — so a public
