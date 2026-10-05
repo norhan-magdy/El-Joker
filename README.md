@@ -2,18 +2,20 @@
 
 # El-Joker
 
-**A full-stack e-commerce platform with a customer storefront, an admin panel, and role-based access control.**
+**A full-stack e-commerce platform with a customer storefront, an admin panel, role-based access control, and a native mobile client.**
 
-Built with **Laravel** (REST API) + **Next.js** (storefront & admin) + a **React Native** mobile app (coming soon).
+Laravel 13 REST API · Next.js 16 web app · Expo SDK 57 mobile app · PostgreSQL
 
 <br/>
 
-[![Laravel](https://img.shields.io/badge/Laravel-13%20^13.17-red?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2057-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
 </div>
 
@@ -46,70 +48,42 @@ Built with **Laravel** (REST API) + **Next.js** (storefront & admin) + a **React
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                           React Native                          │
-│                         mobile app (WIP)                        │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │  JSON API
-┌──────────────────────────────▼──────────────────────────────────┐
-│                           Next.js 16 UI                         │
-│   /shop · /products/[id] · /checkout · /cart · /favorites       │
-│   /account/*         /orders/*        /admin/*                  │
-│   ┌──────────────┐   ┌──────────────┐   ┌──────────────────┐    │
-│   │  TanStack    │   │   Zustand    │   │ react-hook-form  │    │
-│   │   Query      │   │  (auth/cart) │   │     + Zod        │    │
-│   └──────────────┘   └──────────────┘   └──────────────────┘    │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │  REST · Sanctum bearer tokens
-┌──────────────────────────────▼──────────────────────────────────┐
-│                        Laravel 13 API                           │
-│   Auth · Catalog · Cart · Favorites · Orders · Payments ·       │
-│   Invoices · RBAC (roles & permissions)                         │
-│   ┌──────────────────────┐   ┌─────────────────────────────┐    │
-│   │  Sanctum tokens      │   │  Permission middleware      │    │
-│   └──────────────────────┘   └─────────────────────────────┘    │
-│   ┌──────────────────────┐   ┌─────────────────────────────┐    │
-│   │   Queue worker       │   │  GenerateInvoicePdf job     │    │
-│   └──────────────────────┘   └─▶ dompdf ─▶ invoices/*.pdf │    │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   Database (SQL/    │
-                    │   PostgreSQL)       │
-                    └─────────────────────┘
+┌────────────────────────────────┐        ┌────────────────────────────────┐
+│        WEB  ·  Next.js 16      │        │     MOBILE · Expo SDK 57       │
+│     storefront + admin         │        │  storefront + staff console    │
+│                                │        │                                │
+│  proxy.ts ──▶ route guard      │        │  Stack.Protected ─▶ guard      │
+│   (cookie → GET auth/me)       │        │   (2 scopes: api | admin)      │
+│                                │        │                                │
+│  Zustand ─▶ auth session       │        │  SecureStore ─▶ 2 scopes       │
+│  TanStack Query ─▶ all else    │        │  TanStack Query ─▶ all else    │
+│  (cart, catalog, orders)       │        │  (cart, catalog, orders)       │
+└───────────────┬────────────────┘        └───────────────┬────────────────┘
+                │  HTTPS · JSON · Bearer <sanctum token>  │
+                └──────────────────────────────────────┬──┘
+                                                       │
+                                 ┌──────────────────────────────────────────┐
+                                 │        LARAVEL 13 · JSON API             │
+                                 │  stateless · no session, no cookies      │
+                                 │  web + mobile are the only callers       │
+                                 └──────────────────────────────────────────┘
+                                                       │
+                                 ┌──────────────────────────────────────────┐
+                                 │  PostgreSQL · 18 tables                  │
+                                 │  Eloquent ORM · pg_trgm GIN indexes      │
+                                 └──────────────────────────────────────────┘
 ```
-
-**Request flow for a customer checkout**
-
-```mermaid
-sequenceDiagram
-    participant U as Browser (Next.js)
-    participant A as Laravel API
-    participant Q as Queue worker
-    participant D as Database
-
-    U->>A: POST /api/orders/checkout (Bearer token)
-    A->>D: Create order + order items
-    A->>A: Dispatch GenerateInvoicePdf (afterCommit)
-    A-->>U: 201 Created (order)
-    Q->>A: Process queued job
-    A->>D: Generate PDF (dompdf) → store file → save invoice_no
-    U->>A: GET /api/orders/{id}/invoice/pdf
-    A-->>U: application/pdf download
-```
-
----
 
 ## 🧰 Tech Stack
 
 | Layer            | Technology                                                                  |
 | ---------------- | --------------------------------------------------------------------------- |
 | **Backend**      | Laravel 13 · PHP 8.3 · Sanctum (auth) · dompdf (PDF) · Laravel Queues        |
-| **Frontend**     | Next.js 16 (App Router) · React 19 · TypeScript 5                            |
+| **web (frontend)**     | Next.js 16 (App Router) · React 19 · TypeScript 5                            |
+| **Mobile**       | Expo SDK 57 · expo-router 57 · React Native 0.86                             |
 | **State & Data** | TanStack Query · Zustand (+ persist) · react-hook-form · Zod                 |
 | **Styling**      | Tailwind CSS v4 · CSS variables theming · dark mode                          |
 | **Database**     | PostgreSQL 16 (pg_trgm search) · Eloquent ORM                                |
-| **Mobile (WIP)** | React Native                                                                |
 
 ---
 
@@ -119,26 +93,22 @@ sequenceDiagram
 
 - **PHP ≥ 8.3** with [Composer](https://getcomposer.org)
 - **Node.js ≥ 20** with npm
-- **PostgreSQL ≥ 14** *(or SQLite for a lightweight local setup)*
-
-> **Note on the database:** local development defaults to SQLite. The search-index
-> migrations (`pg_trgm` GIN indexes) are PostgreSQL-only — run them against a
-> PostgreSQL instance if you want full-text search enabled.
+- **PostgreSQL ≥ 14**
 
 ### 1 · Backend
 
 ```bash
 cd backend
-composer setup
+composer install
 ```
 
-`composer setup` installs dependencies, copies `.env.example` → `.env`, generates
+`composer install` installs dependencies, copies `.env.example` → `.env`, generates
 an app key, runs migrations, and builds frontend assets.
 
 Seed the default roles, permissions, and demo users:
 
 ```bash
-php artisan db:seed
+php artisan migrate --seed
 ```
 
 | Account              | Email                   | Password   |
@@ -244,8 +214,6 @@ Public endpoints need no token; everything else requires `Authorization: Bearer 
 
 ## 🖼️ Screenshots
 
-> Place screenshots in `docs/screenshots/` and reference them here.
-
 | Storefront | Admin |
 | ---------- | ----- |
 | <img src="docs/screenshots/shop.png" alt="Storefront catalog" width="400"/> <br/> <img src="docs/screenshots/product-details.png" alt="Admin dashboard" width="400"/>| <img src="docs/screenshots/admin-dashboard.png" alt="Admin dashboard" width="400"/> <br/> <img src="docs/screenshots/admin-dashboard-role.png" alt="Admin dashboard" width="400"/> <br/> <img src="docs/screenshots/admin-dashboard-product.png" alt="Admin dashboard" width="400"/>|
@@ -275,5 +243,19 @@ Public endpoints need no token; everything else requires `Authorization: Bearer 
 │       ├── components/       # UI, cart, catalog, shell, auth
 │       ├── lib/              # api, auth-cookie, constants, types
 │       └── store/            # zustand stores (auth, cart)
-└── react-native/             # Mobile app — work in progress
+└── mobile/                     # Expo SDK 57 — storefront + staff console
+│   ├── app.config.ts           # EXPO_PUBLIC_API_URL, bundle id, icons
+│   └── src/
+│       ├── app/                # expo-router: (shop) · (auth) · admin ·
+│       │                       # product/[id] · orders · cart · checkout ·
+│       │                       # favorites · admin-login
+│       ├── components/         # ui · layout · product · order
+│       ├── hooks/              # use-cart, use-products, use-theme, …
+│       ├── lib/
+│       │   ├── api/            # auth · catalog · cart · orders · admin · rbac
+│       │   ├── query-keys.ts   # single source of query keys
+│       │   └── theme/tokens.ts # mirrors the web design tokens
+│       ├── providers/          # QueryProvider, SafeAreaProvider
+│       ├── store/auth.ts       # zustand + SecureStore, api | admin scopes
+│       └── theme/ThemeProvider.tsx
 ```
